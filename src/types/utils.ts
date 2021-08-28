@@ -35,9 +35,11 @@ export type IsAny<T> = boolean extends (T extends never ? true : false)
 export type DeepMap<T, TValue> = {
   [K in keyof T]?: IsAny<T[K]> extends true
     ? any
-    : NonUndefined<T[K]> extends NestedValue | Date | FileList
+    : NonNullable<T[K]> extends NestedValue | Date | FileList | File
     ? TValue
     : NonUndefined<T[K]> extends object
+    ? DeepMap<T[K], TValue> & Partial<TValue>
+    : NonUndefined<T[K]> extends null
     ? DeepMap<T[K], TValue>
     : NonUndefined<T[K]> extends Array<infer U>
     ? IsAny<U> extends true
@@ -97,13 +99,12 @@ export type ArrayPath<T> = T extends ReadonlyArray<infer V>
       [K in keyof T]-?: ArrayPathImpl<K & string, T[K]>;
     }[keyof T];
 
-export type FieldArrayPath<
-  TFieldValues extends FieldValues
-> = ArrayPath<TFieldValues>;
+export type FieldArrayPath<TFieldValues extends FieldValues> =
+  ArrayPath<TFieldValues>;
 
 export type PathValue<
   T,
-  P extends Path<T> | ArrayPath<T>
+  P extends Path<T> | ArrayPath<T>,
 > = P extends `${infer K}.${infer R}`
   ? K extends keyof T
     ? R extends Path<T[K]>
@@ -124,17 +125,17 @@ export type PathValue<
 
 export type FieldPathValue<
   TFieldValues extends FieldValues,
-  TFieldPath extends FieldPath<TFieldValues>
+  TFieldPath extends FieldPath<TFieldValues>,
 > = PathValue<TFieldValues, TFieldPath>;
 
 export type FieldArrayPathValue<
   TFieldValues extends FieldValues,
-  TFieldArrayPath extends FieldArrayPath<TFieldValues>
+  TFieldArrayPath extends FieldArrayPath<TFieldValues>,
 > = PathValue<TFieldValues, TFieldArrayPath>;
 
 export type FieldPathValues<
   TFieldValues extends FieldValues,
-  TPath extends FieldPath<TFieldValues>[]
+  TPath extends FieldPath<TFieldValues>[] | readonly FieldPath<TFieldValues>[],
 > = {} & {
   [K in keyof TPath]: FieldPathValue<
     TFieldValues,

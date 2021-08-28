@@ -1,15 +1,15 @@
 import { Message } from './errors';
-import { FieldValues } from './fields';
+import { FieldValues, InternalFieldName } from './fields';
 import { FieldPath, FieldPathValue } from './utils';
 
 export type ValidationValue = boolean | number | string | RegExp;
 
 export type ValidationRule<
-  TValidationValue extends ValidationValue = ValidationValue
+  TValidationValue extends ValidationValue = ValidationValue,
 > = TValidationValue | ValidationValueMessage<TValidationValue>;
 
 export type ValidationValueMessage<
-  TValidationValue extends ValidationValue = ValidationValue
+  TValidationValue extends ValidationValue = ValidationValue,
 > = {
   value: TValidationValue;
   message: Message;
@@ -23,7 +23,7 @@ export type Validate<TFieldValue> = (
 
 export type RegisterOptions<
   TFieldValues extends FieldValues = FieldValues,
-  TFieldName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TFieldName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = Partial<{
   required: Message | ValidationRule<boolean>;
   min: ValidationRule<number | string>;
@@ -36,6 +36,9 @@ export type RegisterOptions<
     | Record<string, Validate<FieldPathValue<TFieldValues, TFieldName>>>;
   valueAsNumber: boolean;
   valueAsDate: boolean;
+  value: FieldPathValue<TFieldValues, TFieldName>;
   setValueAs: (value: any) => any;
-  shouldUnregister?: boolean;
+  shouldUnregister: boolean;
+  disabled: boolean;
+  deps: InternalFieldName[];
 }>;

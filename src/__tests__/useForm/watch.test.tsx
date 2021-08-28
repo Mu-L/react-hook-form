@@ -124,12 +124,39 @@ describe('watch', () => {
     });
   });
 
-  it('should return default value if value is empty', () => {
-    renderHook(() => {
+  it('should return default value for single input', () => {
+    const results: unknown[] = [];
+    const App = () => {
       const { watch } = useForm<{ test: string }>();
 
-      expect(watch('test', 'default')).toBe('default');
-    });
+      results.push(watch('test', 'default'));
+
+      return null;
+    };
+
+    render(<App />);
+
+    expect(results).toEqual(['default']);
+  });
+
+  it('should return array of default value for array of inputs', () => {
+    const results: unknown[] = [];
+    const App = () => {
+      const { watch } = useForm<{ test: string; test1: string }>();
+
+      results.push(
+        watch(['test', 'test1'], {
+          test: 'default',
+          test1: 'test',
+        }),
+      );
+
+      return null;
+    };
+
+    render(<App />);
+
+    expect(results).toEqual([['default', 'test']]);
   });
 
   it('should watch array of inputs', () => {
@@ -248,7 +275,7 @@ describe('watch', () => {
     const output: object[] = [];
 
     const Component = () => {
-      const { control, handleSubmit, getValues, watch } = useForm<FormValues>({
+      const { control, handleSubmit, watch } = useForm<FormValues>({
         defaultValues: {
           names: [],
         },
@@ -271,7 +298,6 @@ describe('watch', () => {
               <div key={item.id}>
                 <Controller
                   control={control}
-                  defaultValue={getValues().names[index].name}
                   name={`names.${index}.name` as const}
                   render={({ field }) => <input {...field} />}
                 />
@@ -350,5 +376,83 @@ describe('watch', () => {
     });
 
     screen.getByText('False');
+  });
+
+  it('should return deeply nested field values with defaultValues', async () => {
+    let data;
+
+    function App() {
+      const { register, watch } = useForm<{
+        test: {
+          firstName: string;
+          lastName: string;
+        };
+      }>({
+        defaultValues: {
+          test: { lastName: '', firstName: '' },
+        },
+      });
+      data = watch();
+
+      return (
+        <form>
+          <input {...register('test.lastName')} />
+        </form>
+      );
+    }
+
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.change(screen.getByRole('textbox'), {
+        target: {
+          value: '1234',
+        },
+      });
+    });
+
+    expect(data).toEqual({
+      test: {
+        firstName: '',
+        lastName: '1234',
+      },
+    });
+  });
+
+  it('should remove input value after input is unmounted with shouldUnregister: true', () => {
+    const watched: unknown[] = [];
+    const App = () => {
+      const [show, setShow] = React.useState(true);
+      const { watch, register } = useForm({
+        shouldUnregister: true,
+      });
+
+      watched.push(watch());
+
+      return (
+        <div>
+          {show && <input {...register('test')} />}
+          <button
+            onClick={() => {
+              setShow(false);
+            }}
+          >
+            toggle
+          </button>
+        </div>
+      );
+    };
+
+    render(<App />);
+
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: {
+        value: '1',
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button'));
+
+    expect(watched).toMatchSnapshot();
   });
 });

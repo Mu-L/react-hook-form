@@ -1,6 +1,149 @@
 # Changelog
 
+## [7.12.0] - 2021-07-24
+
+## Add
+
+- new `useForm` config `delayError`
+
+```tsx
+useForm({
+  delayError: 500, // delay error appear with 500ms
+});
+```
+
+## [7.11.0] - 2021-07-13
+
+## Add
+
+- `update` method to update an field array inputs
+
+```tsx
+const { update } = useFieldArray();
+
+update(0, data); // update an individual field array node
+```
+
+## [7.10.0] - 2021-07-02
+
+## Changed
+
+- `defaultValue` is no longer a required prop for register input with `useFieldArray`
+
+## [7.9.0] - 2021-06-19
+
+## Add
+
+- new config at `useForm` to enabled native browser validation
+
+```tsx
+const { register, handleSubmit } = useForm({
+  shouldUseNativeValidation: true,
+});
+```
+
+## [7.8.5] - 2021-06-15
+
+### Change
+
+- `useController` no longer access input `ref` except `focus` event for focus management
+
+## [7.8.0] - 2021-06-5
+
+### Added
+
+- `setValue` support `shouldTouch` to update formState touchFields
+
+```tsx
+setValue('firstName', 'value', { shouldTouch: true });
+```
+
+- `register` now accept `value` as option
+
+```tsx
+register('firstName', { value: 'value' });
+```
+
+## Changed
+
+- `isValid` will initialise as `false`
+
+## [7.7.1] - 2021-05-30
+
+### Fixed
+
+- `shouldUnregister: false` should not shallow merge or register absent input fields from `defaultValues`
+
+## [7.7.0] - 2021-05-29
+
+### Added
+
+- `trigger` support focus with error input
+
+```ts
+trigger('inputName', { shouldFocus: true });
+```
+
+### Changed
+
+- `handleSubmit` will `throw` error within the onSubmit callback
+
+## [7.6.0] - 2021-05-15
+
+### Changed
+
+- `useForm` will `register` missing inputs from `defaultValues`
+
+```tsx
+const App = () => {
+  const { register, handleSubmit } = useForm({
+    defaultValues: {
+      test: { firstName: 'bill', lastName: 'luo' },
+    },
+  });
+
+  const onSubmit = (data) => {
+    // missing registered input will be included
+    console.log(data); // { test: { firstName: 'bill', lastName: 'luo' } }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('test.firstName')} />
+      <button />
+    </form>
+  );
+};
+```
+
+## [7.5.0] - 2021-05-09
+
+### Changed
+
+- `isSubmitSuccessful` will return false when `handleSubmit` callback failed with `Error` or `Promise` reject.
+- unmounted input will no longer get validated even with `shouldUnregister: false`
+
+## [7.4.0] - 2021-05-04
+
+### Added
+
+- new `name` prop for `useFormState` to subscribe to individual inputs.
+
+```ts
+useFormState({
+  name: 'inputName', // optional and can be array of inputs' name as well
+});
+```
+
+## [7.2.2] - 2021-04-21
+
+### Changes
+
+- set `shouldUnregister` to `true` will not shallow merge `defaultValues`
+
 ## [7.2.0] - 2021-04-19
+
+### Changes
 
 - `shouldUnregister` config to remove input value after unmount
 
@@ -10,7 +153,7 @@ useForm({
   shouldUnregister: true // default to false
 })
 
-// Component/Hook level config (can not overwrites global cocnfig)
+// Component/Hook level config (can not overwrites global config)
 register('test', {
   shouldUnregister: true // default to false
 })
